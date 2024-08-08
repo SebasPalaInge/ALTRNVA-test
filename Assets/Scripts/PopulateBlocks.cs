@@ -5,9 +5,11 @@ using UnityEngine;
 public class PopulateBlocks : MonoBehaviour
 {
     public static PopulateBlocks instance;
+    [Header("Objects")]
     public GameObject displayBlockParent;
     public GameObject displayBlockPrefab;
     public FlexibleGridLayout gridLayout;
+    public List<BlockDisplay> blocksDisplayed;
 
     private void Awake()
     {
@@ -15,12 +17,17 @@ public class PopulateBlocks : MonoBehaviour
         gridLayout = displayBlockParent.GetComponent<FlexibleGridLayout>();
     }
 
+    private void Start()
+    {
+        blocksDisplayed = new List<BlockDisplay>();
+    }
+
     public void CreateBlocks(Blocks chargedBlocks)
     {
+        //Instance prefabs
         List<int> rows = new List<int>();
         List<int> columns = new List<int>();
 
-        //Instance prefabs
         for (int i = 0; i < chargedBlocks.blocks.Count; i++)
         {
             rows.Add(chargedBlocks.blocks[i].R);
@@ -28,10 +35,20 @@ public class PopulateBlocks : MonoBehaviour
             GameObject blockGO = Instantiate(displayBlockPrefab, displayBlockParent.transform);
         }
 
+        //Getting max number of rows and columns and adding limits
         rows.Sort();
         columns.Sort();
-        gridLayout.rows = rows[rows.Count - 1];
-        gridLayout.columns = columns[columns.Count - 1];
+
+        int maxRows = rows[rows.Count - 1];
+        int maxColumns = columns[columns.Count - 1];
+
+        if (maxRows > 8) maxRows = 8;
+        if (maxRows < 2) maxRows = 2;
+        if (maxColumns > 8) maxColumns = 8;
+        if (maxColumns < 2) maxColumns = 2;
+
+        gridLayout.rows = maxRows;
+        gridLayout.columns = maxColumns;
 
         int rNum = 1;
         int cNum = 1;
@@ -48,9 +65,11 @@ public class PopulateBlocks : MonoBehaviour
             }
         }
 
+        //Updating display
         for (int i = 0; i < chargedBlocks.blocks.Count; i++)
         {
-            string comparison = chargedBlocks.blocks[i].R.ToString() + " " + chargedBlocks.blocks[i].C.ToString();
+            Block compareBlock = chargedBlocks.blocks[i];
+            string comparison = compareBlock.R.ToString() + " " + compareBlock.C.ToString();
 
             for (int j = 0; j < chargedBlocks.blocks.Count; j++)
             {
@@ -62,5 +81,38 @@ public class PopulateBlocks : MonoBehaviour
                 }
             }
         }
+
+        for (int i = 0; i < displayBlockParent.transform.childCount; i++)
+        {
+            blocksDisplayed.Add(displayBlockParent.transform.GetChild(i).GetComponent<BlockDisplay>());
+        }
+
+        GameManager.instance.canRunGameTime = true;
+    }
+
+    public void DestroyContent()
+    {
+        for (int i = 0; i < blocksDisplayed.Count; i++)
+        {
+            Destroy(blocksDisplayed[i].gameObject);
+        }
+        
+        blocksDisplayed = new List<BlockDisplay>();
+    }
+
+    public bool AreBlocksCompleted()
+    {
+        bool areCompleted = false;
+        for (int i = 0; i < blocksDisplayed.Count; i++)
+        {
+            if(!blocksDisplayed[i].isCompleted)
+            {
+                areCompleted = false;
+                break;
+            }
+            else areCompleted = true;
+            
+        }
+        return areCompleted;
     }
 }

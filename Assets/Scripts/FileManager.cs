@@ -4,17 +4,18 @@ using SFB;
 
 public class FileManager : MonoBehaviour
 {
+    public static FileManager instance;
     [Header("Variables")]
     public Blocks chargedBlocks;
-    [Header("GameObjects")]
-    public GameObject notReadedFile;
-    public GameObject displayBlocks;
+
+    private void Awake()
+    {
+        instance = this;
+    }
 
     private void Start()
     {
         chargedBlocks = new Blocks();
-        notReadedFile.SetActive(true);
-        displayBlocks.SetActive(false);
     }
 
     public void ReadFile()
@@ -26,12 +27,21 @@ public class FileManager : MonoBehaviour
         {
             chargedBlocks = JsonUtility.FromJson<Blocks>(readedFile);
             PopulateBlocks.instance.CreateBlocks(chargedBlocks);
-            notReadedFile.SetActive(false);
-            displayBlocks.SetActive(true);
+            GameManager.instance.notReadedFile.SetActive(false);
+            GameManager.instance.displayBlocks.SetActive(true);
         }
         else
         {
             Debug.Log("No es un archivo compatible");
+        }
+    }
+
+    public void SaveFile(string jsonObject)
+    {
+        string path = StandaloneFileBrowser.SaveFilePanel("Selecciona donde quieres guardar los resultados", "", "results", "json");
+        if (!string.IsNullOrEmpty(path))
+        {
+            File.WriteAllText(path, jsonObject);
         }
     }
 }
