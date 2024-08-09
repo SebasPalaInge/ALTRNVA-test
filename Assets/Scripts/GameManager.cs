@@ -48,6 +48,7 @@ public class GameManager : MonoBehaviour
         displayBlocks.SetActive(false);
         gameCover.alpha = 0f;
         gameCover.gameObject.SetActive(false);
+        Debug.Log("HOAAAAAAAAA");
         DialogBehaviour.instance.OpenDialoguePanel(dialogs[0].textsLines, false);
         CreateDefaultState();
     }

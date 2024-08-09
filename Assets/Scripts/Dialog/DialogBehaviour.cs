@@ -102,7 +102,7 @@ public class DialogBehaviour : MonoBehaviour
         LeanTween.alphaCanvas(_dialogPanel.GetComponent<CanvasGroup>(), 0f, 0.2f).setOnComplete(() =>
         {
             _dialogPanel.SetActive(false);
-            if(isNewGame) GameManager.instance.StartNewGame();
+            if(isNewGame) LeaderboardManager.instance.OpenLeaderboard();
         });
     }
 }
