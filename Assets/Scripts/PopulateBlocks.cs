@@ -8,13 +8,14 @@ public class PopulateBlocks : MonoBehaviour
     [Header("Objects")]
     public GameObject displayBlockParent;
     public GameObject displayBlockPrefab;
-    public FlexibleGridLayout gridLayout;
+    public FlexibleGridLayoutTweaked gridLayout;
     public List<BlockDisplay> blocksDisplayed;
+    public List<Sprite> images;
 
     private void Awake()
     {
         instance = this;
-        gridLayout = displayBlockParent.GetComponent<FlexibleGridLayout>();
+        gridLayout = displayBlockParent.GetComponent<FlexibleGridLayoutTweaked>();
     }
 
     private void Start()
@@ -41,6 +42,8 @@ public class PopulateBlocks : MonoBehaviour
 
         int maxRows = rows[rows.Count - 1];
         int maxColumns = columns[columns.Count - 1];
+        //int maxRows = 15;
+        //int maxColumns = 15;
 
         if (maxRows > 8) maxRows = 8;
         if (maxRows < 2) maxRows = 2;
@@ -49,6 +52,7 @@ public class PopulateBlocks : MonoBehaviour
 
         gridLayout.rows = maxRows;
         gridLayout.columns = maxColumns;
+        gridLayout.CalculateLayoutInputHorizontal();
 
         int rNum = 1;
         int cNum = 1;
@@ -76,7 +80,7 @@ public class PopulateBlocks : MonoBehaviour
                 Transform actualChild = displayBlockParent.transform.GetChild(j);
                 if (comparison == actualChild.name)
                 {
-                    actualChild.GetComponent<BlockDisplay>().UpdateDisplay(chargedBlocks.blocks[i]);
+                    actualChild.GetComponent<BlockDisplay>().UpdateDisplay(chargedBlocks.blocks[i], SelectSprite(chargedBlocks.blocks[i].number));
                     break;
                 }
             }
@@ -114,5 +118,11 @@ public class PopulateBlocks : MonoBehaviour
             
         }
         return areCompleted;
+    }
+
+    private Sprite SelectSprite(int number)
+    {
+        Sprite newSprite = images[number];
+        return newSprite;
     }
 }

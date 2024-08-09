@@ -29,6 +29,12 @@ public class FlexibleGridLayout : LayoutGroup
     public bool fitX;
     public bool fitY;
 
+    public int newRows;
+    public int newColumns;
+
+    public int offsetX;
+    public int offsetY;
+
     public override void CalculateLayoutInputHorizontal()
     {
         base.CalculateLayoutInputHorizontal();
@@ -64,7 +70,8 @@ public class FlexibleGridLayout : LayoutGroup
 
         if( fitType == FitType.FIXEDROWSANDCOLUMNS)
         {
-            rows = columns = 1;
+            rows = newRows;
+            columns = newColumns;
         }
 
         float parentWidth = rectTransform.rect.width;
@@ -78,6 +85,9 @@ public class FlexibleGridLayout : LayoutGroup
         cellSize.x = fitX ? cellWidth : cellSize.x;
         cellSize.y = fitY ? cellHeight : cellSize.y;
 
+        if(cellSize.x > 100f) cellSize.x = 100f;
+        if(cellSize.y > 100f) cellSize.y = 100f;
+
         int columnCount = 0;
         int rowCount = 0;
 
@@ -88,13 +98,14 @@ public class FlexibleGridLayout : LayoutGroup
 
             var item = rectChildren[i];
 
-            var xPos = (cellSize.x * columnCount) + (spacing.x * columnCount) + padding.left;
-            var yPos = (cellSize.y * rowCount) + (spacing.y * rowCount) + padding.top;
+            var xPos = (cellSize.x * rowCount + offsetX) + (spacing.x * columnCount) + padding.left;
+            var yPos = (cellSize.y * columnCount + offsetY) + (spacing.y * rowCount) + padding.top;
 
             SetChildAlongAxis(item, 0, xPos, cellSize.x);
             SetChildAlongAxis(item, 1, yPos, cellSize.y);
-
         }
+
+        
     }
 
     public override void CalculateLayoutInputVertical()

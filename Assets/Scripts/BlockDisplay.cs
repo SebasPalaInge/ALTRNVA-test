@@ -10,13 +10,18 @@ public class BlockDisplay : MonoBehaviour, IPointerEnterHandler, IPointerExitHan
     public bool isUncovered = false;
     public bool isCompleted = false;
     [Header("Display objects")]
-    public TextMeshProUGUI numberDisplay;
+    public Image displayImage;
     public CanvasGroup coverAlpha;
     
-    public void UpdateDisplay(Block _blockInfo)
+    public void UpdateDisplay(Block _blockInfo, Sprite displayedSprite)
     {
         blockInfo = _blockInfo;
-        numberDisplay.text = blockInfo.number.ToString();
+        displayImage.sprite = displayedSprite;
+    }
+
+    private void Update() 
+    {
+        displayImage.color = Color.white;
     }
 
     public void Uncover()
@@ -51,7 +56,7 @@ public class BlockDisplay : MonoBehaviour, IPointerEnterHandler, IPointerExitHan
     public void Complete()
     {
         isCompleted = true;
-        LeanTween.color(GetComponent<RectTransform>(), new Color32(120, 224, 143, 255), .1f);
+        LeanTween.color(GetComponent<RectTransform>(), new Color32(205, 255, 215, 255), .1f);
     }
 
     public void OnPointerEnter(PointerEventData eventData)

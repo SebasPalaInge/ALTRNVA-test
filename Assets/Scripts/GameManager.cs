@@ -11,8 +11,8 @@ public class GameManager : MonoBehaviour
     [Header("Variables")]
     public bool comparing = false;
     public bool isFistUncovered = false;
-    public BlockDisplay firstBlockSelected;
-    public BlockDisplay secondBlockSelected;
+    [HideInInspector] public BlockDisplay firstBlockSelected;
+    [HideInInspector] public BlockDisplay secondBlockSelected;
     public AudioSource audioSrc;
     public AudioClip successSound;
     public AudioClip errorSound;
@@ -21,8 +21,14 @@ public class GameManager : MonoBehaviour
     public int pairsCompleted;
     public int numberOfClicks;
     public float currentGameTime;
+    
+    private float gameTimeForReducingScore;
+    private int reducedTimeScore;
+    [Header("Dialogs")]
+    public List<DialogTexts> dialogs;
     [Header("Objects")]
     public TextMeshProUGUI gameTimeDisplay;
+    public TextMeshProUGUI scoreDisplay;
     public TextMeshProUGUI showText;
     public CanvasGroup gameCover;
     public GameObject notReadedFile;
@@ -37,11 +43,12 @@ public class GameManager : MonoBehaviour
 
     private void Start()
     {
-        showText.text = "No se ha cargado un archivo. Haz click en importar para empezar a jugar.";
+        showText.text = "Haz click en 'Seleccionar' para iniciar un nuevo caso.";
         notReadedFile.SetActive(true);
         displayBlocks.SetActive(false);
         gameCover.alpha = 0f;
         gameCover.gameObject.SetActive(false);
+        DialogBehaviour.instance.OpenDialoguePanel(dialogs[0].textsLines, false);
         CreateDefaultState();
     }
 
@@ -53,7 +60,10 @@ public class GameManager : MonoBehaviour
         pairsCompleted = 0;
         numberOfClicks = 0;
         currentGameTime = 0;
+        gameTimeForReducingScore = 0;
+        reducedTimeScore = 0;
         gameTimeDisplay.text = " ";
+        scoreDisplay.text = " ";
     }
 
     private void Update()
@@ -61,9 +71,17 @@ public class GameManager : MonoBehaviour
         if (canRunGameTime)
         {
             currentGameTime += Time.deltaTime;
+            gameTimeForReducingScore = currentGameTime;
             int minutes = Mathf.FloorToInt(currentGameTime / 60);
             int seconds = Mathf.FloorToInt(currentGameTime % 60);
-            gameTimeDisplay.text = string.Format("{0:00}:{1:00}", minutes, seconds);
+            gameTimeDisplay.text = "Tiempo transcurrido: "+ string.Format("{0:00}:{1:00}", minutes, seconds);
+            scoreDisplay.text = "Puntaje: "+score;
+
+            if(gameTimeForReducingScore > 60f)
+            {
+                gameTimeForReducingScore = 0;
+                reducedTimeScore += 5;
+            } 
         }
 
         if (score < 0) score = 0;
@@ -108,9 +126,26 @@ public class GameManager : MonoBehaviour
         {
             Debug.Log("Game completed");
             canRunGameTime = false;
+            RecalculateScore();
             RecopilateResults();
-            StartNewGame();
+            DialogBehaviour.instance.OpenDialoguePanel(dialogs[1].textsLines, true);
         }
+    }
+
+    private void RecalculateScore()
+    {
+        if(numberOfClicks > PopulateBlocks.instance.blocksDisplayed.Count)
+        {
+            int clickDiminish = (numberOfClicks - PopulateBlocks.instance.blocksDisplayed.Count) * 10;
+            score -= clickDiminish;
+        }
+        else if(numberOfClicks.Equals(PopulateBlocks.instance.blocksDisplayed.Count))
+        {
+            score += 200;
+        }
+
+        score -= reducedTimeScore;
+        if(score < 0) score = 0;
     }
 
     private void RecopilateResults()
@@ -132,13 +167,13 @@ public class GameManager : MonoBehaviour
         FileManager.instance.SaveFile(dataCollected);
     }
 
-    private void StartNewGame()
+    public void StartNewGame()
     {
         int minutes = Mathf.FloorToInt(currentGameTime / 60);
         int seconds = Mathf.FloorToInt(currentGameTime % 60);
         string totalTime = string.Format("{0:00}:{1:00}", minutes, seconds);
 
-        showText.text = "Partida completada en " + totalTime + ". Haz click en importar para comenzar una nueva partida.";
+        showText.text = "Caso completado en " + totalTime + ". Haz click en 'Seleccionar' para iniciar un nuevo caso.";
         CreateDefaultState();
         CoverFade();
     }
@@ -151,7 +186,7 @@ public class GameManager : MonoBehaviour
             notReadedFile.SetActive(true);
             displayBlocks.SetActive(false);
             PopulateBlocks.instance.DestroyContent();
-            LeanTween.alphaCanvas(gameCover, 0f, 0.2f).setOnComplete(() => 
+            LeanTween.alphaCanvas(gameCover, 0f, 0.2f).setOnComplete(() =>
             {
                 gameCover.gameObject.SetActive(false);
             });

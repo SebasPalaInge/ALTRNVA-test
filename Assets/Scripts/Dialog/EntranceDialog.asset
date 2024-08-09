@@ -1,0 +1,21 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f1852da2af7083f449a6e8e4892dfc23, type: 3}
+  m_Name: EntranceDialog
+  m_EditorClassIdentifier: 
+  textsLines:
+  - Bienvenido detective.
+  - Para poder comenzar debes seleccionar un caso a revisar.
+  - Tu objetivo es encontrar las coincidencias entre cada una de las pistas.
+  - "Si usas m\xE1s de la cantidad exacta de clicks, tu puntaje se reduce."
+  - "Adem\xE1s, por cada minuto que demores, se reducir\xE1 tu puntaje de igual forma."
+  - Mucha suerte.

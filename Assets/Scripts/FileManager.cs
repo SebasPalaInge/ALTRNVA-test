@@ -20,7 +20,16 @@ public class FileManager : MonoBehaviour
 
     public void ReadFile()
     {
+        if (DialogBehaviour.instance.dialogOpened) return;
+
         string[] path = StandaloneFileBrowser.OpenFilePanel("Selecciona un archivo compatible", "", "json", false);
+
+        if (string.IsNullOrEmpty(path[0]))
+        {
+            Debug.Log("No se encontró una ruta al archivo.");
+            return;
+        }
+
         string readedFile = File.ReadAllText(path[0]);
 
         if (readedFile.Contains("blocks"))
