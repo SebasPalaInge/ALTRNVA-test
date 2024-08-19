@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 public class PopulateBlocks : MonoBehaviour
@@ -25,7 +26,7 @@ public class PopulateBlocks : MonoBehaviour
 
     public void CreateBlocks(Blocks chargedBlocks)
     {
-        //Instance prefabs
+        //Check if number of rows and columns are correct
         List<int> rows = new List<int>();
         List<int> columns = new List<int>();
 
@@ -33,26 +34,57 @@ public class PopulateBlocks : MonoBehaviour
         {
             rows.Add(chargedBlocks.blocks[i].R);
             columns.Add(chargedBlocks.blocks[i].C);
-            GameObject blockGO = Instantiate(displayBlockPrefab, displayBlockParent.transform);
         }
 
-        //Getting max number of rows and columns and adding limits
         rows.Sort();
         columns.Sort();
 
         int maxRows = rows[rows.Count - 1];
         int maxColumns = columns[columns.Count - 1];
-        //int maxRows = 15;
-        //int maxColumns = 15;
 
-        if (maxRows > 8) maxRows = 8;
-        if (maxRows < 2) maxRows = 2;
-        if (maxColumns > 8) maxColumns = 8;
-        if (maxColumns < 2) maxColumns = 2;
+        if (maxRows > 8 || maxRows < 2)
+        {
+            Debug.Log("Cantidad de filas incorrecta.");
+            GameManager.instance.SetTextAndColor("El archivo tiene una cantidad incorrecta de filas (" + maxRows + ").", Color.red);
+            return;
+        }
+        if (maxColumns > 8 || maxColumns < 2)
+        {
+            Debug.Log("Cantidad de columnas incorrecta.");
+            GameManager.instance.SetTextAndColor("El archivo tiene una cantidad incorrecta de columnas (" + maxColumns + ").", Color.red);
+            return;
+        }
 
         gridLayout.rows = maxRows;
         gridLayout.columns = maxColumns;
         gridLayout.CalculateLayoutInputHorizontal();
+
+        //Check if an element is missing a pair
+        List<int> numberList = new List<int>();
+        for (int i = 0; i < chargedBlocks.blocks.Count; i++)
+        {
+            numberList.Add(chargedBlocks.blocks[i].number);
+        }
+
+        var noPairs = numberList.GroupBy(i => i)
+                    .Where(g => g.Count() % 2 == 1)
+                    .Select(g=> g.Key);
+
+        numberList = noPairs.ToList();
+
+        if(numberList.Count > 0)
+        {
+            Debug.Log("Hay un elemento o más que no tienen su pareja.");
+            GameManager.instance.SetTextAndColor("Hay un elemento o más que no tienen su pareja.", Color.red);
+            return;
+        }
+
+        //If checks are correct, instantiate display prefab and run game
+
+        for (int i = 0; i < chargedBlocks.blocks.Count; i++)
+        {
+            Instantiate(displayBlockPrefab, displayBlockParent.transform);
+        }
 
         int rNum = 1;
         int cNum = 1;
@@ -91,7 +123,8 @@ public class PopulateBlocks : MonoBehaviour
             blocksDisplayed.Add(displayBlockParent.transform.GetChild(i).GetComponent<BlockDisplay>());
         }
 
-        GameManager.instance.canRunGameTime = true;
+        //Run game manager to start game
+        GameManager.instance.StartRunningGame();
     }
 
     public void DestroyContent()
@@ -100,7 +133,7 @@ public class PopulateBlocks : MonoBehaviour
         {
             Destroy(blocksDisplayed[i].gameObject);
         }
-        
+
         blocksDisplayed = new List<BlockDisplay>();
     }
 
@@ -109,13 +142,13 @@ public class PopulateBlocks : MonoBehaviour
         bool areCompleted = false;
         for (int i = 0; i < blocksDisplayed.Count; i++)
         {
-            if(!blocksDisplayed[i].isCompleted)
+            if (!blocksDisplayed[i].isCompleted)
             {
                 areCompleted = false;
                 break;
             }
             else areCompleted = true;
-            
+
         }
         return areCompleted;
     }

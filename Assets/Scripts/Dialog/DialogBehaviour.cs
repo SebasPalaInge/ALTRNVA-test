@@ -2,8 +2,6 @@ using TMPro;
 using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
-using UnityEngine.Events;
-using UnityEngine.UIElements;
 
 public class DialogBehaviour : MonoBehaviour
 {
@@ -14,7 +12,7 @@ public class DialogBehaviour : MonoBehaviour
     public float textSpeed;
     private List<string> lastTextsUsed;
     [Header("Objects")]
-    public GameObject _dialogPanel;
+    public CanvasGroup _dialogPanel;
     public TextMeshProUGUI generalText;
     [Header("Audio")]
     public AudioSource audioSrc;
@@ -28,7 +26,6 @@ public class DialogBehaviour : MonoBehaviour
 
     private void Start()
     {
-        _dialogPanel.SetActive(false);
         generalText.text = " ";
     }
 
@@ -52,7 +49,7 @@ public class DialogBehaviour : MonoBehaviour
     {
         FadeEnter();
         dialogOpened = true;
-        _dialogPanel.SetActive(true);
+        _dialogPanel.gameObject.SetActive(true);
         queueNumber = 0;
         isNewGame = _isNewGame;
         lastTextsUsed = textLines;
@@ -93,15 +90,15 @@ public class DialogBehaviour : MonoBehaviour
 
     private void FadeEnter()
     {
-        _dialogPanel.SetActive(true);
-        LeanTween.alphaCanvas(_dialogPanel.GetComponent<CanvasGroup>(), 1f, 0.2f);
+        _dialogPanel.gameObject.SetActive(true);
+        LeanTween.alphaCanvas(_dialogPanel, 1f, 0.2f);
     }
 
     private void FadeExit()
     {
-        LeanTween.alphaCanvas(_dialogPanel.GetComponent<CanvasGroup>(), 0f, 0.2f).setOnComplete(() =>
+        LeanTween.alphaCanvas(_dialogPanel, 0f, 0.2f).setOnComplete(() =>
         {
-            _dialogPanel.SetActive(false);
+            _dialogPanel.gameObject.SetActive(false);
             if(isNewGame) LeaderboardManager.instance.OpenLeaderboard();
         });
     }

@@ -1,8 +1,6 @@
 using System.Collections;
 using UnityEngine;
 using TMPro;
-using System;
-using System.IO;
 using System.Collections.Generic;
 
 public class GameManager : MonoBehaviour
@@ -11,6 +9,8 @@ public class GameManager : MonoBehaviour
     [Header("Variables")]
     public bool comparing = false;
     public bool isFistUncovered = false;
+    public bool pathToResultsNull = false;
+    public bool isButtonLayoutOpened = false;
     [HideInInspector] public BlockDisplay firstBlockSelected;
     [HideInInspector] public BlockDisplay secondBlockSelected;
     public AudioSource audioSrc;
@@ -21,7 +21,6 @@ public class GameManager : MonoBehaviour
     public int pairsCompleted;
     public int numberOfClicks;
     public float currentGameTime;
-    
     private float gameTimeForReducingScore;
     private int reducedTimeScore;
     [Header("Dialogs")]
@@ -31,6 +30,7 @@ public class GameManager : MonoBehaviour
     public TextMeshProUGUI scoreDisplay;
     public TextMeshProUGUI showText;
     public CanvasGroup gameCover;
+    public CanvasGroup buttonLayout;
     public GameObject notReadedFile;
     public GameObject displayBlocks;
 
@@ -43,28 +43,13 @@ public class GameManager : MonoBehaviour
 
     private void Start()
     {
-        showText.text = "Haz click en 'Seleccionar' para iniciar un nuevo caso.";
+        SetTextAndColor("Haz click en 'Seleccionar' para iniciar un nuevo caso.", Color.black);
         notReadedFile.SetActive(true);
         displayBlocks.SetActive(false);
         gameCover.alpha = 0f;
         gameCover.gameObject.SetActive(false);
-        Debug.Log("HOAAAAAAAAA");
         DialogBehaviour.instance.OpenDialoguePanel(dialogs[0].textsLines, false);
         CreateDefaultState();
-    }
-
-    private void CreateDefaultState()
-    {
-        firstBlockSelected = new BlockDisplay();
-        secondBlockSelected = new BlockDisplay();
-        score = 0;
-        pairsCompleted = 0;
-        numberOfClicks = 0;
-        currentGameTime = 0;
-        gameTimeForReducingScore = 0;
-        reducedTimeScore = 0;
-        gameTimeDisplay.text = " ";
-        scoreDisplay.text = " ";
     }
 
     private void Update()
@@ -75,17 +60,48 @@ public class GameManager : MonoBehaviour
             gameTimeForReducingScore = currentGameTime;
             int minutes = Mathf.FloorToInt(currentGameTime / 60);
             int seconds = Mathf.FloorToInt(currentGameTime % 60);
-            gameTimeDisplay.text = "Tiempo transcurrido: "+ string.Format("{0:00}:{1:00}", minutes, seconds);
-            scoreDisplay.text = "Puntaje: "+score;
+            gameTimeDisplay.text = "Tiempo transcurrido: " + string.Format("{0:00}:{1:00}", minutes, seconds);
+            scoreDisplay.text = "Puntaje: " + score;
 
-            if(gameTimeForReducingScore > 60f)
+            if (gameTimeForReducingScore > 60f)
             {
                 gameTimeForReducingScore = 0;
                 reducedTimeScore += 5;
-            } 
+            }
         }
 
         if (score < 0) score = 0;
+    }
+
+    public void SetTextAndColor(string newText, Color newColor)
+    {
+        showText.text = newText;
+        showText.color = newColor;
+    }
+
+    private void CreateDefaultState()
+    {
+        firstBlockSelected = null;
+        secondBlockSelected = null;
+        score = 0;
+        pairsCompleted = 0;
+        numberOfClicks = 0;
+        currentGameTime = 0;
+        gameTimeForReducingScore = 0;
+        reducedTimeScore = 0;
+        gameTimeDisplay.text = " ";
+        scoreDisplay.text = " ";
+        pathToResultsNull = false;
+        isButtonLayoutOpened = false;
+        buttonLayout.gameObject.SetActive(false);
+        buttonLayout.alpha = 0f;
+    }
+
+    public void StartRunningGame()
+    {
+        notReadedFile.SetActive(false);
+        displayBlocks.SetActive(true);
+        canRunGameTime = true;
     }
 
     public void StartComparison()
@@ -129,27 +145,43 @@ public class GameManager : MonoBehaviour
             canRunGameTime = false;
             RecalculateScore();
             RecopilateResults();
-            DialogBehaviour.instance.OpenDialoguePanel(dialogs[1].textsLines, true);
+            if (!pathToResultsNull)
+                DialogBehaviour.instance.OpenDialoguePanel(dialogs[1].textsLines, true);
+            else
+                OpenButtonLayout();
         }
+    }
+
+    public void ContinueButton()
+    {
+        DialogBehaviour.instance.OpenDialoguePanel(dialogs[1].textsLines, true);
+    }
+
+    private void OpenButtonLayout()
+    {
+        if (isButtonLayoutOpened) return;
+
+        buttonLayout.gameObject.SetActive(true);
+        LeanTween.alphaCanvas(buttonLayout, 1f, .2f);
     }
 
     private void RecalculateScore()
     {
-        if(numberOfClicks > PopulateBlocks.instance.blocksDisplayed.Count)
+        if (numberOfClicks > PopulateBlocks.instance.blocksDisplayed.Count)
         {
             int clickDiminish = (numberOfClicks - PopulateBlocks.instance.blocksDisplayed.Count) * 10;
             score -= clickDiminish;
         }
-        else if(numberOfClicks.Equals(PopulateBlocks.instance.blocksDisplayed.Count))
+        else if (numberOfClicks.Equals(PopulateBlocks.instance.blocksDisplayed.Count))
         {
             score += 200;
         }
 
         score -= reducedTimeScore;
-        if(score < 0) score = 0;
+        if (score < 0) score = 0;
     }
 
-    private void RecopilateResults()
+    public void RecopilateResults()
     {
         Results gameData = new Results()
         {
@@ -174,7 +206,7 @@ public class GameManager : MonoBehaviour
         int seconds = Mathf.FloorToInt(currentGameTime % 60);
         string totalTime = string.Format("{0:00}:{1:00}", minutes, seconds);
 
-        showText.text = "Caso completado en " + totalTime + ". Haz click en 'Seleccionar' para iniciar un nuevo caso.";
+        SetTextAndColor("Caso completado en " + totalTime + ". Haz click en 'Seleccionar' para iniciar un nuevo caso.", Color.black);
         CreateDefaultState();
         CoverFade();
     }

@@ -1,6 +1,7 @@
 using UnityEngine;
 using System.IO;
 using SFB;
+using System.Linq;
 
 public class FileManager : MonoBehaviour
 {
@@ -24,9 +25,19 @@ public class FileManager : MonoBehaviour
 
         string[] path = StandaloneFileBrowser.OpenFilePanel("Selecciona un archivo compatible", "", "json", false);
 
-        if (string.IsNullOrEmpty(path[0]))
+        if (path.Length > 0)
         {
-            Debug.Log("No se encontró una ruta al archivo.");
+            if (string.IsNullOrEmpty(path[0]))
+            {
+                Debug.Log("No se encontró una ruta al archivo.");
+                GameManager.instance.SetTextAndColor("La ruta al archivo no se encuentra o se canceló la busqueda.", Color.red);
+                return;
+            }
+        }
+        else
+        {
+            Debug.Log("No existe ruta (Posible cierre de fileExplorer).");
+            GameManager.instance.SetTextAndColor("La ruta al archivo no se encuentra o se canceló la busqueda.", Color.red);
             return;
         }
 
@@ -35,22 +46,33 @@ public class FileManager : MonoBehaviour
         if (readedFile.Contains("blocks"))
         {
             chargedBlocks = JsonUtility.FromJson<Blocks>(readedFile);
+            if (chargedBlocks.blocks.Count % 2 != 0) //Es impar
+            {
+                Debug.Log("El archivo contiene una cantidad de elementos impar.");
+                GameManager.instance.SetTextAndColor("El archivo contiene una cantidad de elementos impar.", Color.red);
+                return;
+            }
             PopulateBlocks.instance.CreateBlocks(chargedBlocks);
-            GameManager.instance.notReadedFile.SetActive(false);
-            GameManager.instance.displayBlocks.SetActive(true);
         }
         else
         {
             Debug.Log("No es un archivo compatible");
+            GameManager.instance.SetTextAndColor("El archivo seleccionado no es compatible.", Color.red);
         }
     }
 
     public void SaveFile(string jsonObject)
     {
         string path = StandaloneFileBrowser.SaveFilePanel("Selecciona donde quieres guardar los resultados", "", "results", "json");
+        Debug.Log(path);
         if (!string.IsNullOrEmpty(path))
         {
             File.WriteAllText(path, jsonObject);
+            GameManager.instance.pathToResultsNull = false;
+        }
+        else
+        {
+            GameManager.instance.pathToResultsNull = true;
         }
     }
 }
